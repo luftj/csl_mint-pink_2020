@@ -3,6 +3,10 @@ import matplotlib.pyplot as plt
 from shapely.geometry import Polygon
 import random
 import matplotlib
+import pandas as pd
+from pandas import read_excel # Requires the xlrd package
+import sys
+import math
 
 class Stadtteil:
     def __init__(self, shape):
@@ -13,6 +17,8 @@ class Stadtteil:
         self.geometry = Polygon( [ (i[0],i[1]) for i in shape.shape.points[:] ] )
         self.nachbarn = []
         self.infiziert = 0
+        self.bevoelkerung = 0
+        self.infiziert_in_prozent = 0
 
     def __str__(self):
         return self.name
@@ -55,12 +61,15 @@ def findNeighbours(stadtteile):
 def init():
     sf = shp.Reader("data/Stadtteile.shp", encoding="ISO8859-1")
     stadtteile = []
+    bevoelkerung = pd.read_excel("data/bevoelkerung.xlsx")
 
     for shape in sf.shapeRecords():
         neu = Stadtteil(shape)
-        neu.infiziert = random.randint(0,15)
+        neu.bevoelkerung = bevoelkerung[neu.name]
+        neu.infiziert = math.floor(random.uniform(0,1)*neu.bevoelkerung)
         stadtteile.append(neu)
     findNeighbours(stadtteile)
+
     return stadtteile
 
 def drawAll(stadtteile):
@@ -73,7 +82,9 @@ def drawAll(stadtteile):
         stadtteil.draw("gray")
 
 def aufgabe1(stadtteile):
-    # Variablendeklaration, Array-Zugriff, if-else Bedingung
+    # Lektion 1: Variablendeklaration, Array-Zugriff, if-else Bedingung
+
+    # Aufgabe 1: Färbe die infizierte Stadtteile rot und nicht-infzierte Stadtteile grün.
     
     stadtteil = Stadtteil.findByName(stadtteile, "Ottensen")
 
@@ -83,13 +94,40 @@ def aufgabe1(stadtteile):
         stadtteil.draw("red")
 
 def aufgabe2(stadtteile):
-    # for-loop
+    # Lektion 2: for-loop
+
+    # Aufgabe 2.a): Berechne die prozentualen Anteile der infizierten Bevölkerungen des jeweiligen Stadtteils und runden Sie das Ergebnis
+
+    for stadtteil in stadtteile:
+        stadtteil.infiziert_in_prozent=int(100*stadtteil.infiziert/stadtteil.bevoelkerung)
+
+    # Aufgabe 2.b): Visualisiere ..... (verständlicher deutsche Text benötigt)
+
     for stadtteil in stadtteile:
         stadtteil.drawGradient(stadtteil.infiziert)
+    
+    
 
 def aufgabe3(stadtteile):
-    # to be defined
-    pass
+    # Lektion 3: kombination for-loop and if else
+
+    # Aufgabe 3: Die WHO definiert das Risikopotential eines Gebiets folgendermaßen: liegt der Anteil der infizierten Bevölkerung 
+    #           bei über 80%, wird das entsprechende Gebiet als "hochgefährdet" eingestuft. Bei einem Infektionsanteil zwischen 30%
+    #           und 80% spricht man von einem "mittleren Gefährdung". Sind unter 30% infiziert, besteht eine "geringe Gefährdung". 
+    #           Bitte färben Sie die Stadtteile entsprechend ihrer Gefährdung: rot = "hoch", orange = "mittel", gelb = "gering". 
+    #           Die Stadtteile ohne Infektionen färben Sie grün.
+    
+    for stadtteil in stadtteile:
+        if stadtteil.infiziert_in_prozent>80:
+            stadtteil.draw("red")
+        elif stadtteil.infiziert_in_prozent>30 & stadtteil.infiziert_in_prozent<80:
+            stadtteil.draw("orange")
+        elif stadtteil.infiziert_in_prozent<30 & stadtteil.infiziert_in_prozent>0:
+            stadtteil.draw("yellow")
+        else:
+            stadtteil.draw("green")
+
+            
 
 if __name__ == "__main__":
     # stadtteil.name
