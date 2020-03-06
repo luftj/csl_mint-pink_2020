@@ -29,6 +29,8 @@ class Stadtteil:
     def draw(self,farbe):
         plt.fill(self.x,self.y, color=farbe)
 
+
+
     def drawGradient(self, value, min=0, max=15):
         '''
         Zeichnet diesen Stadtteil mit einem Farbverlauf.
@@ -96,7 +98,7 @@ def aufgabe1(stadtteile):
 def aufgabe2(stadtteile):
     # Lektion 2: for-loop
 
-    # Aufgabe 2.a): Berechne die prozentualen Anteile der infizierten Bevölkerungen des jeweiligen Stadtteils und runden Sie das Ergebnis
+    # Aufgabe 2.a): Berechne die prozentualen Anteile der infizierten Bevölkerungen des jeweiligen Stadtteils und runde  das Ergebnis
 
     for stadtteil in stadtteile:
         stadtteil.infiziert_in_prozent=int(100*stadtteil.infiziert/stadtteil.bevoelkerung)
@@ -114,8 +116,8 @@ def aufgabe3(stadtteile):
     # Aufgabe 3: Die WHO definiert das Risikopotential eines Gebiets folgendermaßen: liegt der Anteil der infizierten Bevölkerung 
     #           bei über 80%, wird das entsprechende Gebiet als "hochgefährdet" eingestuft. Bei einem Infektionsanteil zwischen 30%
     #           und 80% spricht man von einem "mittleren Gefährdung". Sind unter 30% infiziert, besteht eine "geringe Gefährdung". 
-    #           Bitte färben Sie die Stadtteile entsprechend ihrer Gefährdung: rot = "hoch", orange = "mittel", gelb = "gering". 
-    #           Die Stadtteile ohne Infektionen färben Sie grün.
+    #           Bitte färbe die Stadtteile entsprechend ihrer Gefährdung: rot = "hoch", orange = "mittel", gelb = "gering". 
+    #           Die Stadtteile ohne Infektionen färbe grün.
     
     for stadtteil in stadtteile:
         if stadtteil.infiziert_in_prozent>80:
@@ -127,6 +129,34 @@ def aufgabe3(stadtteile):
         else:
             stadtteil.draw("green")
 
+def aufgabe4(stadtteile):
+    # Lektion 4: für die Neugierige
+
+    # Aufgabe 4.a): Finde heraus wie viele infizierte gibt es in deinem Stadtteil. Schreib die Wert in der Console. 
+    #               Färbe den Stadtteil in deiner lieblingsfarbe und alle andere Stadtteile in grau.
+
+    my_stadtteil = Stadtteil.findByName(stadtteile, "HafenCity")
+    print("In meinem Stadtteil sind:" + str(my_stadtteil.infiziert) + " infiziert")
+    for stadtteil in stadtteile:
+        if stadtteil == my_stadtteil:
+            stadtteil.draw("pink")
+        else:
+            stadtteil.draw("gray")
+
+    
+    # Aufgabe 4.b): Um deine Gesundheit zu schützen du möchtest die Chance eine infizierte Persone zu treffen minimieren. 
+    #               Welcher benachbarte Stadtteil ist am gefährlichsten bzw. welche hat die größte Anzahl der Infizierten? 
+    #               Schreib die Name und die Anzahl der Infizierten dieses Stadtteils in der Console. 
+    
+    max_infiziert=0
+    
+    for stadtteil in my_stadtteil.nachbarn:
+        if stadtteil.infiziert >max_infiziert:
+            max_infiziert=stadtteil.infiziert
+            alert_nachbarn=stadtteil
+
+    print("Die größte Gefahr besteht bei dem Nachbarn: " + alert_nachbarn.name)
+    print("Dieser Nachbarn hat " +  str(alert_nachbarn.infiziert) + " Infizierte!")
             
 
 if __name__ == "__main__":
@@ -143,5 +173,6 @@ if __name__ == "__main__":
     aufgabe1(stadtteile)
     aufgabe2(stadtteile)
     aufgabe3(stadtteile)
+    aufgabe4(stadtteile)
 
     plt.show()
