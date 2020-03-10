@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 from shapely.geometry import Polygon
 import random
 import matplotlib
-import pandas as pd
-from pandas import read_excel # Requires the xlrd package
 import sys
 import math
 
@@ -17,7 +15,9 @@ class Stadtteil:
         self.geometry = Polygon( [ (i[0],i[1]) for i in shape.shape.points[:] ] )
         self.nachbarn = []
         self.infiziert = 0
-        self.bevoelkerung = 0
+        self.bevoelkerung = shape.record[4]
+        if shape.record[4] == None:
+            self.bevoelkerung = 0 
         self.infiziert_in_prozent = 0
 
     def __str__(self):
@@ -29,9 +29,7 @@ class Stadtteil:
     def draw(self,farbe):
         plt.fill(self.x,self.y, color=farbe)
 
-
-
-    def drawGradient(self, value, min=0, max=15):
+    def drawGradient(self, value, min=0, max=100):
         '''
         Zeichnet diesen Stadtteil mit einem Farbverlauf.
         Minimalwert (weiß) des Verlaufs wird mit min gegeben, Maximalwert (rot) mit max.
@@ -61,14 +59,12 @@ def findNeighbours(stadtteile):
                 # other.nachbarn.append(current)
 
 def init():
-    sf = shp.Reader("data/Stadtteile.shp", encoding="ISO8859-1")
+    sf = shp.Reader("data/StadtteileBev.shp", encoding="ISO8859-1")
     stadtteile = []
-    bevoelkerung = pd.read_excel("data/bevoelkerung.xlsx")
 
     for shape in sf.shapeRecords():
         neu = Stadtteil(shape)
-        neu.bevoelkerung = bevoelkerung[neu.name]
-        neu.infiziert = math.floor(random.uniform(0,1)*neu.bevoelkerung)
+        neu.infiziert = math.floor(random.uniform(0,0.2)*neu.bevoelkerung)
         stadtteile.append(neu)
     findNeighbours(stadtteile)
 
@@ -86,7 +82,7 @@ def drawAll(stadtteile):
 def aufgabe1(stadtteile):
     # Lektion 1: Variablendeklaration, Array-Zugriff, if-else Bedingung
 
-    # Aufgabe 1: Färbe die infizierte Stadtteile rot und nicht-infzierte Stadtteile grün.
+    # Aufgabe 1: Färbe einen Stadtteil rot, wenn es dort Infektionen gibt, ansonsten grün.
     
     stadtteil = Stadtteil.findByName(stadtteile, "Ottensen")
 
@@ -98,15 +94,20 @@ def aufgabe1(stadtteile):
 def aufgabe2(stadtteile):
     # Lektion 2: for-loop
 
-    # Aufgabe 2.a): Berechne die prozentualen Anteile der infizierten Bevölkerungen des jeweiligen Stadtteils und runde  das Ergebnis
+    # Aufgabe 2.a): Berechne die prozentualen Anteile der infizierten Bevölkerungen des jeweiligen Stadtteils und runde das Ergebnis
 
     for stadtteil in stadtteile:
-        stadtteil.infiziert_in_prozent=int(100*stadtteil.infiziert/stadtteil.bevoelkerung)
+        if stadtteil.bevoelkerung == 0:
+            stadtteil.infiziert_in_prozent = 0
+        else:
+            stadtteil.infiziert_in_prozent=100*stadtteil.infiziert/stadtteil.bevoelkerung
+        
+        print("In {} sind {:.2f}% infiziert".format(stadtteil.name, stadtteil.infiziert_in_prozent))
 
     # Aufgabe 2.b): Visualisiere ..... (verständlicher deutsche Text benötigt)
 
     for stadtteil in stadtteile:
-        stadtteil.drawGradient(stadtteil.infiziert)
+        stadtteil.drawGradient(stadtteil.infiziert_in_prozent)
     
     
 
@@ -118,13 +119,16 @@ def aufgabe3(stadtteile):
     #           und 80% spricht man von einem "mittleren Gefährdung". Sind unter 30% infiziert, besteht eine "geringe Gefährdung". 
     #           Bitte färbe die Stadtteile entsprechend ihrer Gefährdung: rot = "hoch", orange = "mittel", gelb = "gering". 
     #           Die Stadtteile ohne Infektionen färbe grün.
+
+    grenze_hoch = 15
+    grenze_mittel = 5
     
     for stadtteil in stadtteile:
-        if stadtteil.infiziert_in_prozent>80:
+        if stadtteil.infiziert_in_prozent > grenze_hoch:
             stadtteil.draw("red")
-        elif stadtteil.infiziert_in_prozent>30 & stadtteil.infiziert_in_prozent<80:
+        elif stadtteil.infiziert_in_prozent > grenze_mittel & stadtteil.infiziert_in_prozent < grenze_hoch:
             stadtteil.draw("orange")
-        elif stadtteil.infiziert_in_prozent<30 & stadtteil.infiziert_in_prozent>0:
+        elif stadtteil.infiziert_in_prozent < grenze_mittel & stadtteil.infiziert_in_prozent > 0:
             stadtteil.draw("yellow")
         else:
             stadtteil.draw("green")
@@ -170,9 +174,9 @@ if __name__ == "__main__":
     print(stadtteile)
     # print(stadtteile[5], ":", stadtteile[5].nachbarn)
 
-    aufgabe1(stadtteile)
+    # aufgabe1(stadtteile)
     aufgabe2(stadtteile)
-    aufgabe3(stadtteile)
-    aufgabe4(stadtteile)
+    # aufgabe3(stadtteile)
+    # aufgabe4(stadtteile)
 
     plt.show()
